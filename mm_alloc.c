@@ -1,8 +1,9 @@
 /*
  * mm_alloc.c
  *
- * Stub implementations of the mm_* routines. Remove this comment and provide
- * a summary of your allocator's design here.
+ * Simplistic linked-list implementation for memory allocation.
+ * Free space is always contiguous since fusion() is called whenever something is freed.
+ * Volume shrinking is done at the end of each call to free().
  */
 
 #include "mm_alloc.h"
@@ -10,9 +11,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <assert.h>
-
-/* Your final implementation should comment out this macro. */
-//#define MM_USE_STUBS
 
 s_block_ptr start = NULL;
 s_block_ptr end = NULL;
@@ -123,6 +121,12 @@ void* mm_realloc(void* ptr, size_t size)
 void mm_free(void* ptr)
 {
 	s_block_ptr curr = get_block(ptr);
+	s_block_ptr temp;
 	curr->free = 1;
 	fusion(curr);
+	if (end->free == 1) {
+		temp = end->prev;
+		sbrk(-(end->size));
+		end = temp;
+	}
 }
